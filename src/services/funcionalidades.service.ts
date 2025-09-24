@@ -158,18 +158,24 @@ export class FuncionalidadesService {
    */
   static async getFotosDoUsuario(autorId: string): Promise<Foto[]> {
     try {
+      console.log('👤 [FuncionalidadesService] Buscando fotos do usuário:', autorId);
+      
+      // Query simples sem orderBy para evitar necessidade de índice composto
       const q = query(
         collection(db, FOTOS_COLLECTION),
-        where('autorId', '==', autorId),
-        orderBy('timestamp', 'desc')
+        where('autorId', '==', autorId)
       );
 
+      console.log('👤 [FuncionalidadesService] Executando query para fotos do usuário...');
       const querySnapshot = await getDocs(q);
+      
+      console.log('👤 [FuncionalidadesService] Fotos do usuário encontradas:', querySnapshot.docs.length);
+      
       const fotos: Foto[] = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        fotos.push({
+        const foto = {
           id: doc.id,
           url: data.url,
           autor: data.autor,
@@ -180,12 +186,18 @@ export class FuncionalidadesService {
           favoritada: data.favoritada || false,
           tamanho: data.tamanho,
           nome: data.nome
-        });
+        };
+        console.log('👤 [FuncionalidadesService] Foto do usuário processada:', foto.id, foto.autor, foto.timestamp);
+        fotos.push(foto);
       });
 
+      // Ordenar por timestamp no JavaScript em vez do Firestore
+      fotos.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      console.log('👤 [FuncionalidadesService] Total de fotos do usuário retornadas:', fotos.length);
       return fotos;
     } catch (error) {
-      console.error('Erro ao buscar fotos do usuário:', error);
+      console.error('❌ [FuncionalidadesService] Erro ao buscar fotos do usuário:', error);
       throw error;
     }
   }
@@ -195,18 +207,24 @@ export class FuncionalidadesService {
    */
   static async getFotosFavoritadas(usuarioId: string): Promise<Foto[]> {
     try {
+      console.log('❤️ [FuncionalidadesService] Buscando fotos favoritadas do usuário:', usuarioId);
+      
+      // Query simples sem orderBy para evitar necessidade de índice composto
       const q = query(
         collection(db, FOTOS_COLLECTION),
-        where('usuariosQueCurtiram', 'array-contains', usuarioId),
-        orderBy('timestamp', 'desc')
+        where('usuariosQueCurtiram', 'array-contains', usuarioId)
       );
 
+      console.log('❤️ [FuncionalidadesService] Executando query para fotos favoritadas...');
       const querySnapshot = await getDocs(q);
+      
+      console.log('❤️ [FuncionalidadesService] Fotos favoritadas encontradas:', querySnapshot.docs.length);
+      
       const fotos: Foto[] = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        fotos.push({
+        const foto = {
           id: doc.id,
           url: data.url,
           autor: data.autor,
@@ -217,12 +235,18 @@ export class FuncionalidadesService {
           favoritada: true, // Já que está na lista de favoritas
           tamanho: data.tamanho,
           nome: data.nome
-        });
+        };
+        console.log('❤️ [FuncionalidadesService] Foto favoritada processada:', foto.id, foto.autor, foto.timestamp);
+        fotos.push(foto);
       });
 
+      // Ordenar por timestamp no JavaScript em vez do Firestore
+      fotos.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      console.log('❤️ [FuncionalidadesService] Total de fotos favoritadas retornadas:', fotos.length);
       return fotos;
     } catch (error) {
-      console.error('Erro ao buscar fotos favoritadas:', error);
+      console.error('❌ [FuncionalidadesService] Erro ao buscar fotos favoritadas:', error);
       throw error;
     }
   }
