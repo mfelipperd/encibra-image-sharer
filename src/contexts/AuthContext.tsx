@@ -32,9 +32,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   console.log('🔄 AuthProvider renderizado, user:', user?.uid, 'isLoading:', isLoading);
   
   const criarUsuario = useCriarUsuario();
-  // Temporariamente desabilitado para testar
-  // const { data: usuario } = useUsuario(user?.uid || '');
-  const usuario = null; // Mock temporário
+  const { data: usuario } = useUsuario(user?.uid || '');
 
   const isAuthenticated = !!user;
 
@@ -73,13 +71,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Separar a lógica de criação de usuário em um useEffect diferente
-  // Temporariamente desabilitado para testar
-  // useEffect(() => {
-  //   if (user && !usuario && !criarUsuario.isPending && !criarUsuario.isSuccess) {
-  //     console.log('🔧 Criando usuário no Firestore...', user.uid);
-  //     criarUsuarioIfNotExists(user);
-  //   }
-  // }, [user, usuario, criarUsuario.isPending, criarUsuario.isSuccess]);
+  useEffect(() => {
+    if (user && !usuario && !criarUsuario.isPending && !criarUsuario.isSuccess) {
+      console.log('🔧 Criando usuário no Firestore...', user.uid);
+      criarUsuarioIfNotExists(user);
+    }
+  }, [user]);
 
   const criarUsuarioIfNotExists = async (firebaseUser: User) => {
     try {

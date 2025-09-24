@@ -8,6 +8,8 @@ import {
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
 import { useAuth } from '../contexts/AuthContext';
+import { useFotos, useToggleCurtida } from '../services/hooks';
+import type { Foto } from '../services/types';
 
 interface VerFotosEnviadasProps {
   className?: string;
@@ -25,58 +27,44 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout, usuario } = useAuth();
+  const { data: fotos, isLoading, error } = useFotos();
+  const toggleCurtida = useToggleCurtida();
   
-  // Dados mock das fotos enviadas
-  const fotosEnviadas = [
-    {
-      id: 1,
-      horario: '09h15',
-      tempoAtras: 'Há 2 horas',
-      imagem: '/foto0.png',
-      curtidas: 12,
-      autor: 'Maria Silva'
-    },
-    {
-      id: 2,
-      horario: '10h30',
-      tempoAtras: 'Há 1 hora',
-      imagem: '/foto1.png',
-      curtidas: 8,
-      autor: 'João Santos'
-    },
-    {
-      id: 3,
-      horario: '11h00',
-      tempoAtras: 'Há 45 minutos',
-      imagem: '/foto2.png',
-      curtidas: 15,
-      autor: 'Ana Costa'
-    },
-    {
-      id: 4,
-      horario: '11h30',
-      tempoAtras: 'Há 30 minutos',
-      imagem: '/foto3.png',
-      curtidas: 6,
-      autor: 'Carlos Oliveira'
-    },
-    {
-      id: 5,
-      horario: '12h00',
-      tempoAtras: 'Há 15 minutos',
-      imagem: '/foto0.png',
-      curtidas: 22,
-      autor: 'Lucia Ferreira'
-    },
-    {
-      id: 6,
-      horario: '12h15',
-      tempoAtras: 'Há 10 minutos',
-      imagem: '/foto1.png',
-      curtidas: 4,
-      autor: 'Pedro Lima'
+  // Função para formatar tempo
+  const formatarTempoAtras = (timestamp: Date): string => {
+    const agora = new Date();
+    const diffEmMinutos = Math.floor((agora.getTime() - timestamp.getTime()) / (1000 * 60));
+    
+    if (diffEmMinutos < 1) return 'Agora mesmo';
+    if (diffEmMinutos < 60) return `Há ${diffEmMinutos} minutos`;
+    
+    const diffEmHoras = Math.floor(diffEmMinutos / 60);
+    if (diffEmHoras < 24) return `Há ${diffEmHoras} horas`;
+    
+    const diffEmDias = Math.floor(diffEmHoras / 24);
+    return `Há ${diffEmDias} dias`;
+  };
+
+  // Função para formatar horário
+  const formatarHorario = (timestamp: Date): string => {
+    return timestamp.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const handleFavoritar = async (foto: Foto) => {
+    if (!user) return;
+    
+    try {
+      await toggleCurtida.mutateAsync({
+        fotoId: foto.id,
+        usuarioId: user.uid
+      });
+    } catch (error) {
+      console.error('Erro ao curtir foto:', error);
     }
-  ];
+  };
 
   return (
     <div className={`bg-background p-4 pb-[140px] flex flex-col gap-4 items-center justify-start h-screen relative overflow-hidden animate-fade-in ${className}`}>
@@ -123,46 +111,80 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
         </div>
       </div>
 
-      {/* Container das fotos */}
-      <div className="bg-glass-light border border-glass-light rounded-lg p-4 md:p-5 lg:p-6 flex flex-col gap-4 md:gap-5 lg:gap-6 items-start justify-start flex-1 w-full max-w-[400px] md:max-w-[440px] lg:max-w-[500px] min-h-0 relative overflow-y-auto overflow-x-hidden backdrop-blur-sm z-[5] mb-5 md:mb-6 lg:mb-6 max-h-[calc(100vh-120px)] md:max-h-[calc(100vh-140px)] lg:max-h-[calc(100vh-160px)] animate-slide-in-right">
-        {fotosEnviadas.map((foto, index) => (
-          <div
-            key={foto.id}
-            className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
-            style={{
-              background: `url(${foto.imagem}) center`,
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-            }}
-          >
-            {/* Info do tempo */}
-            <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
-              <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">{foto.horario}</div>
-              <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">{foto.tempoAtras}</div>
-            </div>
-            
-            {/* Info do autor */}
-            <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
-              <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">Por: {foto.autor}</div>
-              <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">{foto.curtidas} curtidas</div>
-            </div>
+              {/* Container das fotos */}
+              <div className="bg-glass-light border border-glass-light rounded-lg p-4 md:p-5 lg:p-6 flex flex-col gap-4 md:gap-5 lg:gap-6 items-start justify-start flex-1 w-full max-w-[400px] md:max-w-[440px] lg:max-w-[500px] min-h-0 relative overflow-y-auto overflow-x-hidden backdrop-blur-sm z-[5] mb-5 md:mb-6 lg:mb-6 max-h-[calc(100vh-120px)] md:max-h-[calc(100vh-140px)] lg:max-h-[calc(100vh-160px)] animate-slide-in-right">
+                {isLoading ? (
+                  <div className="flex items-center justify-center w-full h-32">
+                    <div className="text-white text-center">
+                      Carregando fotos...
+                    </div>
+                  </div>
+                ) : error ? (
+                  <div className="flex items-center justify-center w-full h-32">
+                    <div className="text-red-400 text-center">
+                      Erro ao carregar fotos: {error.message}
+                    </div>
+                  </div>
+                ) : !fotos || fotos.length === 0 ? (
+                  <div className="flex items-center justify-center w-full h-32">
+                    <div className="text-text-secondary text-center">
+                      Nenhuma foto enviada ainda.
+                    </div>
+                  </div>
+                ) : (
+                  fotos.map((foto, index) => (
+                    <div
+                      key={foto.id}
+                      className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                      style={{
+                        background: `url(${foto.url}) center`,
+                        backgroundSize: 'cover',
+                        backgroundRepeat: 'no-repeat',
+                      }}
+                    >
+                      {/* Info do tempo */}
+                      <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
+                        <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                          {formatarHorario(foto.timestamp)}
+                        </div>
+                        <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                          {formatarTempoAtras(foto.timestamp)}
+                        </div>
+                      </div>
+                      
+                      {/* Info do autor */}
+                      <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
+                        <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                          Por: {foto.autor}
+                        </div>
+                        <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                          {foto.curtidas} curtidas
+                        </div>
+                      </div>
 
-            {/* Botão de ação */}
-            <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
-              <div className="flex flex-row gap-[8px] items-center justify-center flex-shrink-0 relative">
-                {/* Botão Favoritar */}
-                <div 
-                  className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
-                  onClick={() => onFavoritarFoto?.(index)}
-                >
-                  <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Favoritar</p>
-                  <Heart size={15} weight="regular" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
-                </div>
+                      {/* Botão de ação */}
+                      <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
+                        <div className="flex flex-row gap-[8px] items-center justify-center flex-shrink-0 relative">
+                          {/* Botão Favoritar */}
+                          <div 
+                            className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
+                            onClick={() => handleFavoritar(foto)}
+                          >
+                            <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">
+                              {foto.usuariosQueCurtiram.includes(user?.uid || '') ? 'Desfavoritar' : 'Favoritar'}
+                            </p>
+                            <Heart 
+                              size={15} 
+                              weight={foto.usuariosQueCurtiram.includes(user?.uid || '') ? "fill" : "regular"} 
+                              className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Gráfico de animação */}
       <img
@@ -182,22 +204,11 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
         </div>
       </div>
 
-      {/* Modal */}
-      <ModalEnviarFoto
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTirarNovaFoto={() => {
-          console.log('Tirar nova foto');
-          onTirarNovaFoto?.();
-        }}
-        onEnviarDaGaleria={(files) => {
-          console.log('Arquivos selecionados da galeria:', files);
-          Array.from(files).forEach(file => {
-            console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
-          });
-          onEnviarDaGaleria?.(files);
-        }}
-      />
+              {/* Modal */}
+              <ModalEnviarFoto
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+              />
     </div>
   );
 };

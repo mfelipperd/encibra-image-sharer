@@ -75,11 +75,13 @@ export function useUploadFoto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (fotoUpload: FotoUpload) => FuncionalidadesService.uploadFoto(fotoUpload),
-    onSuccess: () => {
+    mutationFn: ({ fotoUpload, autorId }: { fotoUpload: FotoUpload; autorId: string }) => 
+      FuncionalidadesService.uploadFoto(fotoUpload, autorId),
+    onSuccess: (_, variables) => {
       console.log('✅ Upload realizado, invalidando queries...');
       // Invalidar queries relacionadas às fotos
       queryClient.invalidateQueries({ queryKey: queryKeys.fotos });
+      queryClient.invalidateQueries({ queryKey: queryKeys.fotosUsuario(variables.autorId) });
     },
     onError: (error) => {
       console.error('Erro no upload da foto:', error);

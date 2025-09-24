@@ -9,6 +9,8 @@ import {
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
 import { useAuth } from '../contexts/AuthContext';
+import { useFotosUsuario, useFotosFavoritadas, useToggleCurtida, useDeletarFoto } from '../services/hooks';
+import type { Foto } from '../services/types';
 
 interface MinhasFotosProps {
   className?: string;
@@ -29,50 +31,60 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user, logout, usuario } = useAuth();
   
-  // Dados mock das fotos favoritadas (de terceiros)
-  const fotosFavoritadas = [
-    {
-      id: 1,
-      horario: '10h30',
-      tempoAtras: 'Há 5 minutos',
-      imagem: '/foto0.png',
-      autor: 'Maria Silva',
-      curtidas: 12
-    },
-    {
-      id: 2,
-      horario: '11h00',
-      tempoAtras: 'Há 15 minutos',
-      imagem: '/foto1.png',
-      autor: 'João Santos',
-      curtidas: 8
-    }
-  ];
+  // Buscar fotos do usuário e favoritadas
+  const { data: minhasFotosEnviadas, isLoading: loadingMinhas } = useFotosUsuario(user?.uid || '');
+  const { data: fotosFavoritadas, isLoading: loadingFavoritas } = useFotosFavoritadas(user?.uid || '');
+  const toggleCurtida = useToggleCurtida();
+  const deletarFoto = useDeletarFoto();
+  
+  // Função para formatar tempo
+  const formatarTempoAtras = (timestamp: Date): string => {
+    const agora = new Date();
+    const diffEmMinutos = Math.floor((agora.getTime() - timestamp.getTime()) / (1000 * 60));
+    
+    if (diffEmMinutos < 1) return 'Agora mesmo';
+    if (diffEmMinutos < 60) return `Há ${diffEmMinutos} minutos`;
+    
+    const diffEmHoras = Math.floor(diffEmMinutos / 60);
+    if (diffEmHoras < 24) return `Há ${diffEmHoras} horas`;
+    
+    const diffEmDias = Math.floor(diffEmHoras / 24);
+    return `Há ${diffEmDias} dias`;
+  };
 
-  // Dados mock das fotos enviadas pelo usuário
-  const minhasFotosEnviadas = [
-    {
-      id: 1,
-      horario: '09h15',
-      tempoAtras: 'Há 2 horas',
-      imagem: '/foto2.png',
-      curtidas: 5
-    },
-    {
-      id: 2,
-      horario: '10h45',
-      tempoAtras: 'Há 1 hora',
-      imagem: '/foto3.png',
-      curtidas: 8
-    },
-    {
-      id: 3,
-      horario: '11h30',
-      tempoAtras: 'Há 30 minutos',
-      imagem: '/foto0.png',
-      curtidas: 12
+  // Função para formatar horário
+  const formatarHorario = (timestamp: Date): string => {
+    return timestamp.toLocaleTimeString('pt-BR', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const handleDesfavoritar = async (foto: Foto) => {
+    if (!user) return;
+    
+    try {
+      await toggleCurtida.mutateAsync({
+        fotoId: foto.id,
+        usuarioId: user.uid
+      });
+    } catch (error) {
+      console.error('Erro ao desfavoritar foto:', error);
     }
-  ];
+  };
+
+  const handleApagarMinhaFoto = async (foto: Foto) => {
+    if (!user) return;
+    
+    try {
+      await deletarFoto.mutateAsync({
+        fotoId: foto.id,
+        autorId: user.uid
+      });
+    } catch (error) {
+      console.error('Erro ao apagar foto:', error);
+    }
+  };
 
   return (
     <div className={`bg-background p-4 pb-[140px] flex flex-col gap-4 items-center justify-start h-screen relative overflow-hidden animate-fade-in ${className}`}>
@@ -122,88 +134,112 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
       {/* Container das fotos */}
       <div className="bg-glass-light border border-glass-light rounded-lg p-4 md:p-5 lg:p-6 flex flex-col gap-4 md:gap-5 lg:gap-6 items-start justify-start flex-1 w-full max-w-[400px] md:max-w-[440px] lg:max-w-[500px] min-h-0 relative overflow-y-auto overflow-x-hidden backdrop-blur-sm z-[5] mb-5 md:mb-6 lg:mb-6 max-h-[calc(100vh-120px)] md:max-h-[calc(100vh-140px)] lg:max-h-[calc(100vh-160px)] animate-slide-in-right">
         
-        {/* Seção: Minhas Fotos Enviadas */}
-        {minhasFotosEnviadas.length > 0 && (
-          <>
-            <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
-              Minhas Fotos Enviadas
-            </div>
-            {minhasFotosEnviadas.map((foto, index) => (
-              <div
-                key={`minha-foto-${foto.id}`}
-                className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
-                style={{
-                  background: `url(${foto.imagem}) center`,
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              >
-                {/* Info do tempo */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
-                  <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">{foto.horario}</div>
-                  <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">{foto.tempoAtras}</div>
-                </div>
-                
-                {/* Info das curtidas */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
-                  <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">{foto.curtidas} curtidas</div>
-                  <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">Minha foto</div>
-                </div>
-
-                {/* Botão de ação - Apagar */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
-                  <div 
-                    className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
-                    onClick={() => onApagarMinhaFoto?.(index)}
-                  >
-                    <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Apagar Foto</p>
-                    <Trash size={15} weight="regular" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                {/* Seção: Minhas Fotos Enviadas */}
+                {loadingMinhas ? (
+                  <div className="flex items-center justify-center w-full h-16">
+                    <div className="text-white text-center">Carregando suas fotos...</div>
                   </div>
-                </div>
-              </div>
+                ) : minhasFotosEnviadas && minhasFotosEnviadas.length > 0 && (
+                  <>
+                    <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
+                      Minhas Fotos Enviadas
+                    </div>
+                    {minhasFotosEnviadas.map((foto, index) => (
+                      <div
+                        key={`minha-foto-${foto.id}`}
+                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                        style={{
+                          background: `url(${foto.url}) center`,
+                          backgroundSize: 'cover',
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      >
+                        {/* Info do tempo */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
+                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                            {formatarHorario(foto.timestamp)}
+                          </div>
+                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                            {formatarTempoAtras(foto.timestamp)}
+                          </div>
+                        </div>
+                        
+                        {/* Info das curtidas */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
+                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                            {foto.curtidas} curtidas
+                          </div>
+                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                            Minha foto
+                          </div>
+                        </div>
+
+                        {/* Botão de ação - Apagar */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
+                          <div 
+                            className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
+                            onClick={() => handleApagarMinhaFoto(foto)}
+                          >
+                            <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Apagar Foto</p>
+                            <Trash size={15} weight="regular" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                          </div>
+                        </div>
+                      </div>
             ))}
           </>
         )}
 
-        {/* Seção: Fotos Favoritadas */}
-        {fotosFavoritadas.length > 0 && (
-          <>
-            <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
-              Fotos Favoritadas
-            </div>
-            {fotosFavoritadas.map((foto, index) => (
-              <div
-                key={`favorita-${foto.id}`}
-                className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
-                style={{
-                  background: `url(${foto.imagem}) center`,
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              >
-                {/* Info do tempo */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
-                  <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">{foto.horario}</div>
-                  <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">{foto.tempoAtras}</div>
-                </div>
-                
-                {/* Info do autor */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
-                  <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">Por: {foto.autor}</div>
-                  <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">{foto.curtidas} curtidas</div>
-                </div>
-
-                {/* Botão de ação - Desfavoritar */}
-                <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
-                  <div 
-                    className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
-                    onClick={() => onDesfavoritarFoto?.(index)}
-                  >
-                    <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Desfavoritar</p>
-                    <Heart size={15} weight="fill" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                {/* Seção: Fotos Favoritadas */}
+                {loadingFavoritas ? (
+                  <div className="flex items-center justify-center w-full h-16">
+                    <div className="text-white text-center">Carregando fotos favoritas...</div>
                   </div>
-                </div>
-              </div>
+                ) : fotosFavoritadas && fotosFavoritadas.length > 0 && (
+                  <>
+                    <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
+                      Fotos Favoritadas
+                    </div>
+                    {fotosFavoritadas.map((foto, index) => (
+                      <div
+                        key={`favorita-${foto.id}`}
+                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                        style={{
+                          background: `url(${foto.url}) center`,
+                          backgroundSize: 'cover',
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      >
+                        {/* Info do tempo */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
+                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                            {formatarHorario(foto.timestamp)}
+                          </div>
+                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                            {formatarTempoAtras(foto.timestamp)}
+                          </div>
+                        </div>
+                        
+                        {/* Info do autor */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
+                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
+                            Por: {foto.autor}
+                          </div>
+                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
+                            {foto.curtidas} curtidas
+                          </div>
+                        </div>
+
+                        {/* Botão de ação - Desfavoritar */}
+                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
+                          <div 
+                            className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
+                            onClick={() => handleDesfavoritar(foto)}
+                          >
+                            <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Desfavoritar</p>
+                            <Heart size={15} weight="fill" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                          </div>
+                        </div>
+                      </div>
             ))}
           </>
         )}
@@ -227,22 +263,11 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
         </div>
       </div>
 
-      {/* Modal */}
-      <ModalEnviarFoto
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTirarNovaFoto={() => {
-          console.log('Tirar nova foto');
-          onTirarNovaFoto?.();
-        }}
-        onEnviarDaGaleria={(files) => {
-          console.log('Arquivos selecionados da galeria:', files);
-          Array.from(files).forEach(file => {
-            console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
-          });
-          onEnviarDaGaleria?.(files);
-        }}
-      />
+              {/* Modal */}
+              <ModalEnviarFoto
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+              />
     </div>
   );
 };

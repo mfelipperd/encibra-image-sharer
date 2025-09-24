@@ -92,20 +92,11 @@ export const Inicio: React.FC<InicioProps> = ({
         alt="Gráfico de animação"
       />
 
-      {/* Modal de Envio de Foto */}
-      <ModalEnviarFoto
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onTirarNovaFoto={() => {
-          console.log('Tirar nova foto');
-        }}
-        onEnviarDaGaleria={(files) => {
-          console.log('Arquivos selecionados da galeria:', files);
-          Array.from(files).forEach(file => {
-            console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
-          });
-        }}
-      />
+              {/* Modal de Envio de Foto */}
+              <ModalEnviarFoto
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+              />
 
       {/* Modal de Login */}
       <ModalLogin
