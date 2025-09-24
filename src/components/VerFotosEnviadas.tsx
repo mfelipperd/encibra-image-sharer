@@ -14,16 +14,10 @@ import type { Foto } from '../services/types';
 
 interface VerFotosEnviadasProps {
   className?: string;
-  onFavoritarFoto?: (index: number) => void;
-  onTirarNovaFoto?: () => void;
-  onEnviarDaGaleria?: (files: FileList) => void;
 }
 
 export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
-  className = '',
-  onFavoritarFoto,
-  onTirarNovaFoto,
-  onEnviarDaGaleria
+  className = ''
 }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -145,7 +139,7 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
                     </div>
                   </div>
                 ) : (
-                  fotos.map((foto, index) => (
+                  fotos.map((foto) => (
                     <div
                       key={foto.id}
                       className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"

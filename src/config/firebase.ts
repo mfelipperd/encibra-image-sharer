@@ -8,12 +8,12 @@ import { getAuth } from "firebase/auth";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAwP5q6kbREHTgUyPqHwIZ7ljI_phzwibg",
-  authDomain: "encibra-image-shower.firebaseapp.com",
-  projectId: "encibra-image-shower",
-  storageBucket: "encibra-image-shower.firebasestorage.app",
-  messagingSenderId: "857787146736",
-  appId: "1:857787146736:web:404515889b2b6558ad7d35"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
   // measurementId: "G-KYQRVD9LB9" // Temporarily disabled
 };
 
