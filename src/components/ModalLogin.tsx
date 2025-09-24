@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, GoogleLogo } from 'phosphor-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,16 +11,20 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({
   isOpen,
   onClose
 }) => {
-  const { signInWithGoogle, isLoading } = useAuth();
+  const { signInWithGoogle } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   if (!isOpen) return null;
 
   const handleLogin = async () => {
     try {
+      setIsLoggingIn(true);
       await signInWithGoogle();
+      setIsLoggingIn(false);
       onClose();
     } catch (error) {
       console.error('Erro no login:', error);
+      setIsLoggingIn(false);
     }
   };
 
@@ -59,10 +63,10 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({
           {/* Botão de login */}
           <button
             onClick={handleLogin}
-            disabled={isLoading}
+            disabled={isLoggingIn}
             className="bg-white border-0 rounded-[24px] p-4 md:p-6 flex flex-row gap-3 md:gap-[14px] items-center justify-center w-full h-[60px] md:h-[70px] relative overflow-hidden backdrop-blur-xs cursor-pointer transition-all duration-300 ease-in-out hover:bg-gray-100 hover:-translate-y-0.5 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
+            {isLoggingIn ? (
               <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
             ) : (
               <>
