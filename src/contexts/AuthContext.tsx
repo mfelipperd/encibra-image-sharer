@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   usuario: Usuario | null;
   isLoading: boolean;
-  login: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async () => {
+  const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
       const provider = new GoogleAuthProvider();
@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     usuario: usuario || null,
     isLoading,
-    login,
+    signInWithGoogle,
     logout,
     isAuthenticated
   };

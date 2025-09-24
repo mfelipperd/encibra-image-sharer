@@ -11,13 +11,13 @@ export const ModalLogin: React.FC<ModalLoginProps> = ({
   isOpen,
   onClose
 }) => {
-  const { login, isLoading } = useAuth();
+  const { signInWithGoogle, isLoading } = useAuth();
 
   if (!isOpen) return null;
 
   const handleLogin = async () => {
     try {
-      await login();
+      await signInWithGoogle();
       onClose();
     } catch (error) {
       console.error('Erro no login:', error);
