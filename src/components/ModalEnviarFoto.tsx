@@ -43,10 +43,8 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
       return;
     }
     
-    if (!usuario) {
-      console.error('❌ Dados do usuário não carregados (Firestore)');
-      return;
-    }
+    // Usar dados do Firebase Auth se os dados do Firestore não estiverem disponíveis
+    const nomeUsuario = usuario?.nome || user.displayName || user.email?.split('@')[0] || 'Usuário';
 
     console.log('👤 Usuário autenticado:', user.uid);
     console.log('👤 Dados do usuário:', usuario);
@@ -56,7 +54,7 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
       const fotoUpload = {
         file,
         nome: file.name,
-        autor: usuario.nome || user.displayName || 'Usuário'
+        autor: nomeUsuario
       };
 
       console.log('📤 Dados do upload:', fotoUpload);

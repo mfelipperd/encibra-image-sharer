@@ -76,7 +76,7 @@ export function useUploadFoto() {
 
   return useMutation({
     mutationFn: ({ fotoUpload, autorId }: { fotoUpload: FotoUpload; autorId: string }) => 
-      FuncionalidadesService.uploadFoto(fotoUpload),
+      FuncionalidadesService.uploadFoto(fotoUpload, autorId),
     onSuccess: (_, variables) => {
       console.log('✅ Upload realizado, invalidando queries...');
       // Invalidar queries relacionadas às fotos

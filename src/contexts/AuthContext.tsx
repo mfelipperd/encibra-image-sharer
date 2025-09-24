@@ -80,6 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const criarUsuarioIfNotExists = async (firebaseUser: User) => {
     try {
+      console.log('🔧 [AuthContext] Criando usuário no Firestore:', firebaseUser.uid);
       const novoUsuario: Omit<Usuario, 'id'> = {
         nome: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuário',
         email: firebaseUser.email || '',
@@ -89,9 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         createdAt: new Date()
       };
 
-      await criarUsuario.mutateAsync(novoUsuario);
+      console.log('🔧 [AuthContext] Dados do usuário:', novoUsuario);
+      const result = await criarUsuario.mutateAsync(novoUsuario);
+      console.log('✅ [AuthContext] Usuário criado com sucesso:', result);
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
+      console.error('❌ [AuthContext] Erro ao criar usuário:', error);
+      console.error('❌ [AuthContext] Detalhes do erro:', error);
     }
   };
 

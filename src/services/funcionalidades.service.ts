@@ -295,13 +295,15 @@ export class FuncionalidadesService {
    */
   static async criarUsuario(usuario: Omit<Usuario, 'id'>): Promise<string> {
     try {
+      console.log('🔥 [FuncionalidadesService] Criando usuário no Firestore:', usuario);
       const docRef = await addDoc(collection(db, USUARIOS_COLLECTION), {
         ...usuario,
         createdAt: Timestamp.fromDate(usuario.createdAt)
       });
+      console.log('✅ [FuncionalidadesService] Usuário criado com ID:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
+      console.error('❌ [FuncionalidadesService] Erro ao criar usuário:', error);
       throw error;
     }
   }
