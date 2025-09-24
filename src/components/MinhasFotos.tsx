@@ -169,7 +169,7 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     {minhasFotosEnviadas.map((foto) => (
                       <div
                         key={`minha-foto-${foto.id}`}
-                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                        className="rounded-[5px] flex flex-col gap-0 items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
                         style={{
                           background: `url(${foto.url}) center`,
                           backgroundSize: 'cover',
@@ -177,38 +177,32 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                         }}
                         onClick={() => abrirModalVisualizar(foto)}
                       >
-                        {/* Info do tempo */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
-                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
-                            {formatarHorario(foto.timestamp)}
+                        {/* Rodapé com informações e botão */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 flex flex-row items-center justify-between">
+                          {/* Info do tempo */}
+                          <div className="flex flex-col gap-0">
+                            <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold">
+                              {formatarHorario(foto.timestamp)}
+                            </div>
+                            <div className="text-white text-left font-sans text-xs leading-none font-normal">
+                              {formatarTempoAtras(foto.timestamp)}
+                            </div>
                           </div>
-                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
-                            {formatarTempoAtras(foto.timestamp)}
-                          </div>
-                        </div>
-                        
-                        {/* Info das curtidas */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
-                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
-                            {foto.curtidas} curtidas
-                          </div>
-                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
-                            Minha foto
-                          </div>
-                        </div>
 
-                        {/* Botão de ação - Apagar */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
+                          {/* Botão de ação */}
                           <div 
-                            className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
-                            onClick={() => handleApagarMinhaFoto(foto)}
+                            className="bg-glass border border-glass rounded-full flex flex-row gap-1 items-center justify-center cursor-pointer transition-all duration-300 ease-in-out px-3 py-2 hover:bg-white/20 backdrop-blur-sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApagarMinhaFoto(foto);
+                            }}
                           >
-                            <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Apagar Foto</p>
-                            <Trash size={15} weight="regular" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                            <p className="text-accent text-right font-sans text-xs font-normal">Apagar Foto</p>
+                            <Trash size={14} weight="regular" className="text-accent" />
                           </div>
                         </div>
                       </div>
-            ))}
+                    ))}
           </>
         )}
 
@@ -225,7 +219,7 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     {fotosFavoritadas.map((foto) => (
                       <div
                         key={`favorita-${foto.id}`}
-                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                        className="rounded-[5px] flex flex-col gap-0 items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
                         style={{
                           background: `url(${foto.url}) center`,
                           backgroundSize: 'cover',
@@ -233,38 +227,35 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                         }}
                         onClick={() => abrirModalVisualizar(foto)}
                       >
-                        {/* Info do tempo */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
-                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
-                            {formatarHorario(foto.timestamp)}
+                        {/* Rodapé com informações e botão */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 flex flex-row items-center justify-between">
+                          {/* Info do tempo e autor */}
+                          <div className="flex flex-col gap-0">
+                            <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold">
+                              {formatarHorario(foto.timestamp)}
+                            </div>
+                            <div className="text-white text-left font-sans text-xs leading-none font-normal">
+                              {formatarTempoAtras(foto.timestamp)}
+                            </div>
+                            <div className="text-text-muted text-left font-sans text-[10px] leading-none font-normal mt-1">
+                              Por: {foto.autor}
+                            </div>
                           </div>
-                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
-                            {formatarTempoAtras(foto.timestamp)}
-                          </div>
-                        </div>
-                        
-                        {/* Info do autor */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] absolute left-0 bottom-0 backdrop-blur-[3.85px]">
-                          <div className="text-text-muted text-left font-sans-bold text-xs leading-none font-bold relative flex items-center justify-start">
-                            Por: {foto.autor}
-                          </div>
-                          <div className="text-white text-left font-sans text-xs leading-none font-normal relative flex items-center justify-start">
-                            {foto.curtidas} curtidas
-                          </div>
-                        </div>
 
-                        {/* Botão de ação - Desfavoritar */}
-                        <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-row gap-[5px] items-center justify-start flex-shrink-0 w-[246px] h-[43px] absolute right-[-246px] bottom-0 origin-[0_0] rotate-0 scale-x-[-1] backdrop-blur-[3.85px]">
+                          {/* Botão de ação */}
                           <div 
-                            className="bg-glass border border-glass rounded-[61.48px] flex flex-row gap-2 items-center justify-between flex-shrink-0 backdrop-blur-sm cursor-pointer transition-colors duration-300 ease-in-out px-[10px] py-[5px]" 
-                            onClick={() => handleDesfavoritar(foto)}
+                            className="bg-glass border border-glass rounded-full flex flex-row gap-1 items-center justify-center cursor-pointer transition-all duration-300 ease-in-out px-3 py-2 hover:bg-white/20 backdrop-blur-sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDesfavoritar(foto);
+                            }}
                           >
-                            <p className="text-accent text-right font-sans text-[9px] leading-none font-normal scale-x-[-1]">Desfavoritar</p>
-                            <Heart size={15} weight="fill" className="flex-shrink-0 w-[15px] h-[15px] text-accent scale-x-[-1]" />
+                            <p className="text-accent text-right font-sans text-xs font-normal">Desfavoritar</p>
+                            <Heart size={14} weight="fill" className="text-accent" />
                           </div>
                         </div>
                       </div>
-            ))}
+                    ))}
           </>
         )}
       </div>
