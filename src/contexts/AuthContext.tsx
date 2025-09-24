@@ -121,6 +121,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       await signOut(auth);
       setUser(null);
+      // Redirect to home page after logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Erro no logout:', error);
       throw error;
