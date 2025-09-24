@@ -11,11 +11,13 @@ import { useUploadFoto } from '../services/hooks';
 interface ModalEnviarFotoProps {
   isOpen: boolean;
   onClose: () => void;
+  onUploadSuccess?: () => void;
 }
 
 export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
   isOpen,
-  onClose
+  onClose,
+  onUploadSuccess
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -99,13 +101,17 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
         }
       }
 
-      console.log(`🎉 Upload concluído! ${results.length} sucessos, ${errors.length} erros`);
-      
-      if (errors.length > 0) {
-        console.warn('⚠️ Alguns arquivos falharam:', errors);
-      }
+              console.log(`🎉 Upload concluído! ${results.length} sucessos, ${errors.length} erros`);
+              
+              if (errors.length > 0) {
+                console.warn('⚠️ Alguns arquivos falharam:', errors);
+              }
 
-      onClose();
+              // Fechar modal e executar callback de sucesso
+              onClose();
+              if (onUploadSuccess) {
+                onUploadSuccess();
+              }
     } catch (error) {
       console.error('❌ Erro geral no upload múltiplo:', error);
     } finally {

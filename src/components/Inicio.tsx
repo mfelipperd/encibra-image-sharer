@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BotaoEnviarFoto } from './BotaoEnviarFoto';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
 import { ModalLogin } from './ModalLogin';
@@ -13,6 +14,12 @@ export const Inicio: React.FC<InicioProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { requireAuth, isLoginModalOpen, closeLoginModal } = useAuthModal();
+  const navigate = useNavigate();
+
+  const handleUploadSuccess = () => {
+    // Redirecionar para Minhas Fotos após upload bem-sucedido
+    navigate('/my-photos');
+  };
   return (
     <div className={`bg-background min-h-screen relative overflow-hidden flex items-center justify-center p-3 animate-fade-in ${className}`}>
       {/* Imagem de fundo com blur */}
@@ -96,6 +103,7 @@ export const Inicio: React.FC<InicioProps> = ({
               <ModalEnviarFoto
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                onUploadSuccess={handleUploadSuccess}
               />
 
       {/* Modal de Login */}
