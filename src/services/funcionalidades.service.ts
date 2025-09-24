@@ -35,18 +35,29 @@ export class FuncionalidadesService {
   /**
    * Upload de uma nova foto
    */
-  static async uploadFoto(fotoUpload: FotoUpload): Promise<string> {
+  static async uploadFoto(fotoUpload: FotoUpload, autorId?: string): Promise<string> {
+    console.log('🔥 [FuncionalidadesService] Iniciando upload de foto');
+    console.log('🔥 [FuncionalidadesService] Dados recebidos:', { file: fotoUpload.file.name, autor: fotoUpload.autor, autorId });
+    
     try {
       // 1. Upload da imagem para o Storage
-      const storageRef = ref(storage, `fotos/${Date.now()}_${fotoUpload.file.name}`);
+      console.log('📤 [FuncionalidadesService] Fazendo upload para Storage...');
+      const storagePath = `fotos/${autorId || 'anonymous'}/${Date.now()}_${fotoUpload.file.name}`;
+      console.log('📤 [FuncionalidadesService] Caminho do Storage:', storagePath);
+      
+      const storageRef = ref(storage, storagePath);
       const uploadResult = await uploadBytes(storageRef, fotoUpload.file);
+      console.log('✅ [FuncionalidadesService] Upload para Storage concluído');
+      
       const downloadURL = await getDownloadURL(uploadResult.ref);
+      console.log('🔗 [FuncionalidadesService] URL gerada:', downloadURL);
 
       // 2. Salvar metadados no Firestore
+      console.log('💾 [FuncionalidadesService] Salvando metadados no Firestore...');
       const fotoData: Omit<Foto, 'id'> = {
         url: downloadURL,
         autor: fotoUpload.autor,
-        autorId: '', // Será preenchido quando implementarmos autenticação
+        autorId: autorId || '',
         timestamp: new Date(),
         curtidas: 0,
         usuariosQueCurtiram: [],
@@ -59,10 +70,30 @@ export class FuncionalidadesService {
         ...fotoData,
         timestamp: Timestamp.fromDate(fotoData.timestamp)
       });
+      
+      console.log('✅ [FuncionalidadesService] Documento criado no Firestore:', docRef.id);
 
+      // 3. Atualizar lista de fotos enviadas do usuário (se autorId fornecido)
+      if (autorId) {
+        console.log('👤 [FuncionalidadesService] Atualizando lista de fotos do usuário...');
+        const usuarioRef = doc(db, USUARIOS_COLLECTION, autorId);
+        const usuarioDoc = await getDoc(usuarioRef);
+        
+        if (usuarioDoc.exists()) {
+          const usuarioData = usuarioDoc.data();
+          await updateDoc(usuarioRef, {
+            fotosEnviadas: [...(usuarioData.fotosEnviadas || []), docRef.id],
+          });
+          console.log('✅ [FuncionalidadesService] Lista de fotos do usuário atualizada');
+        } else {
+          console.warn('⚠️ [FuncionalidadesService] Usuário não encontrado no Firestore');
+        }
+      }
+
+      console.log('🎉 [FuncionalidadesService] Upload concluído com sucesso!');
       return docRef.id;
     } catch (error) {
-      console.error('Erro ao fazer upload da foto:', error);
+      console.error('❌ [FuncionalidadesService] Erro durante upload:', error);
       throw error;
     }
   }

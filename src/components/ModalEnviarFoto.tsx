@@ -36,10 +36,20 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
   };
 
   const uploadFile = async (file: File) => {
-    if (!user || !usuario) {
-      console.error('Usuário não autenticado');
+    console.log('🚀 Iniciando upload do arquivo:', file.name, 'Tamanho:', file.size);
+    
+    if (!user) {
+      console.error('❌ Usuário não autenticado (Firebase Auth)');
       return;
     }
+    
+    if (!usuario) {
+      console.error('❌ Dados do usuário não carregados (Firestore)');
+      return;
+    }
+
+    console.log('👤 Usuário autenticado:', user.uid);
+    console.log('👤 Dados do usuário:', usuario);
 
     setIsUploading(true);
     try {
@@ -49,15 +59,18 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
         autor: usuario.nome || user.displayName || 'Usuário'
       };
 
-      await uploadFoto.mutateAsync({
+      console.log('📤 Dados do upload:', fotoUpload);
+
+      const result = await uploadFoto.mutateAsync({
         fotoUpload,
         autorId: user.uid
       });
 
-      console.log('✅ Foto enviada com sucesso!');
+      console.log('✅ Foto enviada com sucesso! Resultado:', result);
       onClose();
     } catch (error) {
       console.error('❌ Erro ao enviar foto:', error);
+      console.error('❌ Detalhes do erro:', error);
     } finally {
       setIsUploading(false);
     }
