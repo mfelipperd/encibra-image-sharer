@@ -23,6 +23,8 @@ export function useFotos(params?: PaginationParams) {
       return FuncionalidadesService.getFotos(params);
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1,
+    refetchOnWindowFocus: true, // Forçar refresh quando a janela ganhar foco
   });
 }
 

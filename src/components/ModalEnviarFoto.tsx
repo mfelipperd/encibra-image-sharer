@@ -49,7 +49,6 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
     console.log('👤 Usuário autenticado:', user.uid);
     console.log('👤 Dados do usuário:', usuario);
 
-    setIsUploading(true);
     try {
       const fotoUpload = {
         file,
@@ -65,10 +64,50 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
       });
 
       console.log('✅ Foto enviada com sucesso! Resultado:', result);
-      onClose();
     } catch (error) {
       console.error('❌ Erro ao enviar foto:', error);
       console.error('❌ Detalhes do erro:', error);
+      throw error; // Re-throw para que uploadFiles possa tratar
+    }
+  };
+
+  const uploadFiles = async (files: FileList) => {
+    console.log('🚀 Iniciando upload de múltiplos arquivos:', files.length);
+    
+    if (!user) {
+      console.error('❌ Usuário não autenticado (Firebase Auth)');
+      return;
+    }
+
+    setIsUploading(true);
+    const results = [];
+    const errors = [];
+
+    try {
+      // Processar cada arquivo
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`📤 Enviando arquivo ${i + 1}/${files.length}:`, file.name);
+        
+        try {
+          const result = await uploadFile(file);
+          results.push(result);
+          console.log(`✅ Arquivo ${i + 1} enviado com sucesso`);
+        } catch (error) {
+          console.error(`❌ Erro no arquivo ${i + 1}:`, error);
+          errors.push({ file: file.name, error });
+        }
+      }
+
+      console.log(`🎉 Upload concluído! ${results.length} sucessos, ${errors.length} erros`);
+      
+      if (errors.length > 0) {
+        console.warn('⚠️ Alguns arquivos falharam:', errors);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('❌ Erro geral no upload múltiplo:', error);
     } finally {
       setIsUploading(false);
     }
@@ -77,14 +116,14 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
   const handleCameraCapture = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      uploadFile(files[0]);
+      uploadFiles(files);
     }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      uploadFile(files[0]);
+      uploadFiles(files);
     }
   };
 
@@ -100,12 +139,15 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
 
       {/* Título no centro */}
       <div className="flex flex-col items-center justify-center h-full text-center px-4">
-        <h2 className="text-white font-sans-black text-2xl md:text-3xl font-black mb-2">
-          Enviar Foto
-        </h2>
-        <p className="text-text-secondary font-sans text-base md:text-lg">
-          Escolha como você quer enviar sua foto
-        </p>
+                <h2 className="text-white font-sans-black text-2xl md:text-3xl font-black mb-2">
+                  Enviar Fotos
+                </h2>
+                <p className="text-text-secondary font-sans text-base md:text-lg">
+                  Escolha como você quer enviar suas fotos
+                </p>
+                <p className="text-text-muted font-sans text-sm mt-2">
+                  Você pode selecionar múltiplas fotos de uma vez
+                </p>
       </div>
 
       {/* Botões de ação na base da tela */}
@@ -124,7 +166,7 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
                       <Camera size={24} weight="fill" className="flex-shrink-0 text-[#212121]" />
                     )}
                     <div className="text-[#212121] text-center font-sans-bold text-lg md:text-xl leading-[22px] md:leading-[28px] font-bold relative flex items-center justify-center">
-                      {isUploading ? 'Enviando...' : 'Tirar nova foto'}
+                      {isUploading ? 'Enviando...' : 'Tirar fotos'}
                     </div>
                   </button>
 
@@ -162,6 +204,7 @@ export const ModalEnviarFoto: React.FC<ModalEnviarFotoProps> = ({
         type="file"
         accept="image/*"
         capture="environment"
+        multiple={true}
         onChange={handleCameraCapture}
         style={{ display: 'none' }}
       />

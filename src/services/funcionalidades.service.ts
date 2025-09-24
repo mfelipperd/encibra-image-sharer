@@ -103,6 +103,8 @@ export class FuncionalidadesService {
    */
   static async getFotos(params: PaginationParams = { limit: 10 }): Promise<Foto[]> {
     try {
+      console.log('📸 [FuncionalidadesService] Buscando fotos com params:', params);
+      
       let q = query(
         collection(db, FOTOS_COLLECTION),
         orderBy('timestamp', 'desc'),
@@ -118,12 +120,16 @@ export class FuncionalidadesService {
         );
       }
 
+      console.log('📸 [FuncionalidadesService] Executando query no Firestore...');
       const querySnapshot = await getDocs(q);
+      
+      console.log('📸 [FuncionalidadesService] Documentos encontrados:', querySnapshot.docs.length);
+      
       const fotos: Foto[] = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        fotos.push({
+        const foto = {
           id: doc.id,
           url: data.url,
           autor: data.autor,
@@ -134,12 +140,15 @@ export class FuncionalidadesService {
           favoritada: data.favoritada || false,
           tamanho: data.tamanho,
           nome: data.nome
-        });
+        };
+        console.log('📸 [FuncionalidadesService] Foto processada:', foto.id, foto.autor, foto.timestamp);
+        fotos.push(foto);
       });
 
+      console.log('📸 [FuncionalidadesService] Total de fotos retornadas:', fotos.length);
       return fotos;
     } catch (error) {
-      console.error('Erro ao buscar fotos:', error);
+      console.error('❌ [FuncionalidadesService] Erro ao buscar fotos:', error);
       throw error;
     }
   }
