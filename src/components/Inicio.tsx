@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { BotaoEnviarFoto } from './BotaoEnviarFoto';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
+import { ModalLogin } from './ModalLogin';
+import { useAuthModal } from '../hooks/useAuthModal';
 
 interface InicioProps {
   className?: string;
@@ -11,6 +12,7 @@ export const Inicio: React.FC<InicioProps> = ({
   className = ''
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { requireAuth, isLoginModalOpen, closeLoginModal } = useAuthModal();
   return (
     <div className={`bg-background min-h-screen relative overflow-hidden flex items-center justify-center p-3 animate-fade-in ${className}`}>
       {/* Imagem de fundo com blur */}
@@ -58,22 +60,28 @@ export const Inicio: React.FC<InicioProps> = ({
         {/* Botão principal */}
         <BotaoEnviarFoto 
           className="w-full"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => requireAuth(() => setIsModalOpen(true))}
         />
         
         {/* Menu de itens */}
         <div className="flex flex-col gap-3 items-center justify-center w-[393px] max-w-[393px] md:w-full md:max-w-[393px]">
-          <Link to="/my-photos" className="bg-glass border border-glass rounded-[61.48px] p-6 flex items-center justify-center w-full h-[60px] backdrop-blur-md cursor-pointer transition-colors duration-300 ease-in-out hover:bg-white/20 user-select-none text-decoration-none">
+          <div 
+            className="bg-glass border border-glass rounded-[61.48px] p-6 flex items-center justify-center w-full h-[60px] backdrop-blur-md cursor-pointer transition-colors duration-300 ease-in-out hover:bg-white/20 user-select-none text-decoration-none"
+            onClick={() => requireAuth(() => window.location.href = '/my-photos')}
+          >
             <div className="text-[#d6d6d6] text-center font-sans text-[19.719999313354492px] leading-[27.84px] md:text-base font-normal">
               Minhas Fotos
             </div>
-          </Link>
+          </div>
           
-          <Link to="/shared-photos" className="bg-glass border border-glass rounded-[61.48px] p-6 flex items-center justify-center w-full h-[60px] backdrop-blur-md cursor-pointer transition-colors duration-300 ease-in-out hover:bg-white/20 user-select-none text-decoration-none">
+          <div 
+            className="bg-glass border border-glass rounded-[61.48px] p-6 flex items-center justify-center w-full h-[60px] backdrop-blur-md cursor-pointer transition-colors duration-300 ease-in-out hover:bg-white/20 user-select-none text-decoration-none"
+            onClick={() => requireAuth(() => window.location.href = '/shared-photos')}
+          >
             <div className="text-[#d6d6d6] text-center font-sans text-[19.719999313354492px] leading-[27.84px] md:text-base font-normal">
               Ver fotos enviadas
             </div>
-          </Link>
+          </div>
         </div>
       </div>
       
@@ -84,7 +92,7 @@ export const Inicio: React.FC<InicioProps> = ({
         alt="Gráfico de animação"
       />
 
-      {/* Modal */}
+      {/* Modal de Envio de Foto */}
       <ModalEnviarFoto
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -97,6 +105,12 @@ export const Inicio: React.FC<InicioProps> = ({
             console.log('Arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
           });
         }}
+      />
+
+      {/* Modal de Login */}
+      <ModalLogin
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
       />
     </div>
   );

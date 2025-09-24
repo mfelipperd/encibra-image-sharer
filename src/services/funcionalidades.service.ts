@@ -23,7 +23,7 @@ import {
   deleteObject 
 } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
-import { Foto, Usuario, FotoUpload, FotoUpdate, PaginationParams } from './types';
+import type { Foto, Usuario, FotoUpload, PaginationParams } from './types';
 
 // Collections
 const FOTOS_COLLECTION = 'fotos';

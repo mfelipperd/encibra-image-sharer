@@ -4,9 +4,11 @@ import {
   ArrowBendUpLeft,
   Heart,
   Trash,
-  Camera
+  Camera,
+  SignOut
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
+import { useAuth } from '../contexts/AuthContext';
 
 interface MinhasFotosProps {
   className?: string;
@@ -25,6 +27,7 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, logout, usuario } = useAuth();
   
   // Dados mock das fotos favoritadas (de terceiros)
   const fotosFavoritadas = [
@@ -91,15 +94,29 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
             <div className="text-white text-left font-sans text-[10px] md:text-xs leading-none font-normal relative flex items-center justify-start">Voltar</div>
           </div>
           <div className="flex flex-col gap-[1px] md:gap-1 items-start justify-center flex-shrink-0 relative self-start">
-            <div className="text-text-secondary text-left font-sans text-[10px] md:text-sm leading-none font-normal relative flex items-center justify-start">Galeria de Fotos</div>
+            <div className="text-text-secondary text-left font-sans text-[10px] md:text-sm leading-none font-normal relative flex items-center justify-start">
+              Olá, {usuario?.nome || user?.displayName || 'Usuário'}
+            </div>
             <div className="text-white text-left font-sans-black text-base md:text-xl lg:text-2xl leading-none font-black relative flex items-center justify-start">Minhas Fotos</div>
           </div>
         </div>
-        <img 
-          className="flex-shrink-0 w-auto h-[90px] md:h-[60px] lg:h-[70px] object-contain max-w-[150px] md:max-w-[180px] lg:max-w-[200px] z-[20] self-center" 
-          src="/logo.png" 
-          alt="Logo" 
-        />
+        
+        <div className="flex flex-row items-center gap-2 md:gap-3">
+          <img 
+            className="flex-shrink-0 w-auto h-[90px] md:h-[60px] lg:h-[70px] object-contain max-w-[150px] md:max-w-[180px] lg:max-w-[200px] z-[20] self-center" 
+            src="/logo.png" 
+            alt="Logo" 
+          />
+          
+          {/* Botão de Logout */}
+          <div 
+            className="bg-glass border border-glass rounded-xl md:rounded-2xl flex flex-row gap-1 md:gap-1.5 items-center justify-center w-auto relative backdrop-blur-md cursor-pointer transition-colors duration-300 ease-in-out px-2 py-1 md:px-3 md:py-2 hover:bg-white/20" 
+            onClick={logout}
+          >
+            <SignOut size={8} weight="regular" className="flex-shrink-0 w-2 h-2 md:w-3 md:h-3 aspect-square text-white" />
+            <div className="text-white text-left font-sans text-[10px] md:text-xs leading-none font-normal relative flex items-center justify-start">Sair</div>
+          </div>
+        </div>
       </div>
 
       {/* Container das fotos */}

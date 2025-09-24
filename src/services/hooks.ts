@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FuncionalidadesService } from './funcionalidades.service';
-import { Foto, Usuario, FotoUpload, PaginationParams } from './types';
+import type { Usuario, FotoUpload, PaginationParams } from './types';
 
 // Query Keys
 export const queryKeys = {
@@ -18,7 +18,10 @@ export const queryKeys = {
 export function useFotos(params?: PaginationParams) {
   return useQuery({
     queryKey: [...queryKeys.fotos, params],
-    queryFn: () => FuncionalidadesService.getFotos(params),
+    queryFn: () => {
+      console.log('📸 Buscando fotos com params:', params);
+      return FuncionalidadesService.getFotos(params);
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
@@ -53,9 +56,13 @@ export function useFotosFavoritadas(usuarioId: string) {
 export function useUsuario(usuarioId: string) {
   return useQuery({
     queryKey: queryKeys.usuario(usuarioId),
-    queryFn: () => FuncionalidadesService.getUsuario(usuarioId),
-    enabled: !!usuarioId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    queryFn: () => {
+      console.log('🔍 Buscando usuário:', usuarioId);
+      return FuncionalidadesService.getUsuario(usuarioId);
+    },
+    enabled: !!usuarioId && usuarioId.length > 0, // Verificação mais robusta
+    staleTime: 15 * 60 * 1000, // 15 minutes (aumentado)
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 }
 
@@ -70,6 +77,7 @@ export function useUploadFoto() {
   return useMutation({
     mutationFn: (fotoUpload: FotoUpload) => FuncionalidadesService.uploadFoto(fotoUpload),
     onSuccess: () => {
+      console.log('✅ Upload realizado, invalidando queries...');
       // Invalidar queries relacionadas às fotos
       queryClient.invalidateQueries({ queryKey: queryKeys.fotos });
     },
@@ -89,6 +97,7 @@ export function useToggleCurtida() {
     mutationFn: ({ fotoId, usuarioId }: { fotoId: string; usuarioId: string }) =>
       FuncionalidadesService.toggleCurtida(fotoId, usuarioId),
     onSuccess: (_, variables) => {
+      console.log('❤️ Curtida atualizada, invalidando queries...');
       // Invalidar todas as queries de fotos
       queryClient.invalidateQueries({ queryKey: queryKeys.fotos });
       queryClient.invalidateQueries({ 

@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+// import { getAnalytics } from "firebase/analytics"; // Temporarily disabled
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
@@ -13,8 +13,8 @@ const firebaseConfig = {
   projectId: "encibra-image-shower",
   storageBucket: "encibra-image-shower.firebasestorage.app",
   messagingSenderId: "857787146736",
-  appId: "1:857787146736:web:404515889b2b6558ad7d35",
-  measurementId: "G-KYQRVD9LB9"
+  appId: "1:857787146736:web:404515889b2b6558ad7d35"
+  // measurementId: "G-KYQRVD9LB9" // Temporarily disabled
 };
 
 // Initialize Firebase
@@ -25,7 +25,8 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 
-// Initialize Analytics (only in browser)
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+// Initialize Analytics (temporarily disabled)
+// export const analytics = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? getAnalytics(app) : null;
+export const analytics = null;
 
 export default app;
