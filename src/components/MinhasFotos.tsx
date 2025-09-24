@@ -8,27 +8,22 @@ import {
   SignOut
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
+import { ModalConfirmacao } from './ModalConfirmacao';
 import { useAuth } from '../contexts/AuthContext';
 import { useFotosUsuario, useFotosFavoritadas, useToggleCurtida, useDeletarFoto } from '../services/hooks';
 import type { Foto } from '../services/types';
 
 interface MinhasFotosProps {
   className?: string;
-  onTirarNovaFoto?: () => void;
-  onEnviarDaGaleria?: (files: FileList) => void;
-  onDesfavoritarFoto?: (index: number) => void;
-  onApagarMinhaFoto?: (index: number) => void;
 }
 
 export const MinhasFotos: React.FC<MinhasFotosProps> = ({ 
-  className = '',
-  onTirarNovaFoto,
-  onEnviarDaGaleria,
-  onDesfavoritarFoto,
-  onApagarMinhaFoto
+  className = ''
 }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalConfirmacaoOpen, setIsModalConfirmacaoOpen] = useState(false);
+  const [fotoParaApagar, setFotoParaApagar] = useState<Foto | null>(null);
   const { user, logout, usuario } = useAuth();
   
   // Buscar fotos do usuário e favoritadas
@@ -73,17 +68,31 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
     }
   };
 
-  const handleApagarMinhaFoto = async (foto: Foto) => {
-    if (!user) return;
+  const handleApagarMinhaFoto = (foto: Foto) => {
+    setFotoParaApagar(foto);
+    setIsModalConfirmacaoOpen(true);
+  };
+
+  const confirmarApagarFoto = async () => {
+    if (!user || !fotoParaApagar) return;
     
     try {
       await deletarFoto.mutateAsync({
-        fotoId: foto.id,
+        fotoId: fotoParaApagar.id,
         autorId: user.uid
       });
+      setIsModalConfirmacaoOpen(false);
+      setFotoParaApagar(null);
     } catch (error) {
       console.error('Erro ao apagar foto:', error);
+      setIsModalConfirmacaoOpen(false);
+      setFotoParaApagar(null);
     }
+  };
+
+  const cancelarApagarFoto = () => {
+    setIsModalConfirmacaoOpen(false);
+    setFotoParaApagar(null);
   };
 
   return (
@@ -144,7 +153,7 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
                       Minhas Fotos Enviadas
                     </div>
-                    {minhasFotosEnviadas.map((foto, index) => (
+                    {minhasFotosEnviadas.map((foto) => (
                       <div
                         key={`minha-foto-${foto.id}`}
                         className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
@@ -199,7 +208,7 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     <div className="text-white font-sans-bold text-sm md:text-base font-bold w-full text-left">
                       Fotos Favoritadas
                     </div>
-                    {fotosFavoritadas.map((foto, index) => (
+                    {fotosFavoritadas.map((foto) => (
                       <div
                         key={`favorita-${foto.id}`}
                         className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
@@ -268,6 +277,19 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
               />
-    </div>
-  );
-};
+
+              {/* Modal de Confirmação */}
+              <ModalConfirmacao
+                isOpen={isModalConfirmacaoOpen}
+                onClose={cancelarApagarFoto}
+                onConfirm={confirmarApagarFoto}
+                titulo="Apagar Foto"
+                mensagem="Tem certeza que deseja apagar esta foto? Esta ação não pode ser desfeita."
+                textoConfirmar="Sim, Apagar"
+                textoCancelar="Cancelar"
+                tipo="perigo"
+                isLoading={deletarFoto.isPending}
+              />
+            </div>
+          );
+        };
