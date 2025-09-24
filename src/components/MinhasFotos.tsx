@@ -9,6 +9,7 @@ import {
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
 import { ModalConfirmacao } from './ModalConfirmacao';
+import { ModalVisualizarFoto } from './ModalVisualizarFoto';
 import { useAuth } from '../contexts/AuthContext';
 import { useFotosUsuario, useFotosFavoritadas, useToggleCurtida, useDeletarFoto } from '../services/hooks';
 import type { Foto } from '../services/types';
@@ -24,6 +25,8 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalConfirmacaoOpen, setIsModalConfirmacaoOpen] = useState(false);
   const [fotoParaApagar, setFotoParaApagar] = useState<Foto | null>(null);
+  const [isModalVisualizarOpen, setIsModalVisualizarOpen] = useState(false);
+  const [fotoParaVisualizar, setFotoParaVisualizar] = useState<Foto | null>(null);
   const { user, logout, usuario } = useAuth();
   
   // Buscar fotos do usuário e favoritadas
@@ -95,6 +98,16 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
     setFotoParaApagar(null);
   };
 
+  const abrirModalVisualizar = (foto: Foto) => {
+    setFotoParaVisualizar(foto);
+    setIsModalVisualizarOpen(true);
+  };
+
+  const fecharModalVisualizar = () => {
+    setIsModalVisualizarOpen(false);
+    setFotoParaVisualizar(null);
+  };
+
   return (
     <div className={`bg-background p-4 pb-[140px] flex flex-col gap-4 items-center justify-start h-screen relative overflow-hidden animate-fade-in ${className}`}>
       {/* Imagem de fundo */}
@@ -156,12 +169,13 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     {minhasFotosEnviadas.map((foto) => (
                       <div
                         key={`minha-foto-${foto.id}`}
-                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
                         style={{
                           background: `url(${foto.url}) center`,
                           backgroundSize: 'cover',
                           backgroundRepeat: 'no-repeat',
                         }}
+                        onClick={() => abrirModalVisualizar(foto)}
                       >
                         {/* Info do tempo */}
                         <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
@@ -211,12 +225,13 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                     {fotosFavoritadas.map((foto) => (
                       <div
                         key={`favorita-${foto.id}`}
-                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                        className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
                         style={{
                           background: `url(${foto.url}) center`,
                           backgroundSize: 'cover',
                           backgroundRepeat: 'no-repeat',
                         }}
+                        onClick={() => abrirModalVisualizar(foto)}
                       >
                         {/* Info do tempo */}
                         <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
@@ -289,6 +304,18 @@ export const MinhasFotos: React.FC<MinhasFotosProps> = ({
                 textoCancelar="Cancelar"
                 tipo="perigo"
                 isLoading={deletarFoto.isPending}
+              />
+
+              {/* Modal de Visualização */}
+              <ModalVisualizarFoto
+                isOpen={isModalVisualizarOpen}
+                onClose={fecharModalVisualizar}
+                foto={fotoParaVisualizar}
+                onToggleCurtida={handleDesfavoritar}
+                onDeletarFoto={handleApagarMinhaFoto}
+                showActions={true}
+                isMinhaFoto={fotoParaVisualizar?.autorId === user?.uid}
+                isFavoritada={fotoParaVisualizar?.usuariosQueCurtiram.includes(user?.uid || '') || false}
               />
             </div>
           );

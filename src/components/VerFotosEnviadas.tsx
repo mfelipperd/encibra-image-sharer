@@ -7,6 +7,7 @@ import {
   SignOut
 } from 'phosphor-react';
 import { ModalEnviarFoto } from './ModalEnviarFoto';
+import { ModalVisualizarFoto } from './ModalVisualizarFoto';
 import { useAuth } from '../contexts/AuthContext';
 import { useFotos, useToggleCurtida } from '../services/hooks';
 import type { Foto } from '../services/types';
@@ -26,6 +27,8 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalVisualizarOpen, setIsModalVisualizarOpen] = useState(false);
+  const [fotoParaVisualizar, setFotoParaVisualizar] = useState<Foto | null>(null);
   const { user, logout, usuario } = useAuth();
   const { data: fotos, isLoading, error } = useFotos();
   const toggleCurtida = useToggleCurtida();
@@ -64,6 +67,16 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
     } catch (error) {
       console.error('Erro ao curtir foto:', error);
     }
+  };
+
+  const abrirModalVisualizar = (foto: Foto) => {
+    setFotoParaVisualizar(foto);
+    setIsModalVisualizarOpen(true);
+  };
+
+  const fecharModalVisualizar = () => {
+    setIsModalVisualizarOpen(false);
+    setFotoParaVisualizar(null);
   };
 
   return (
@@ -135,12 +148,13 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
                   fotos.map((foto, index) => (
                     <div
                       key={foto.id}
-                      className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden"
+                      className="rounded-[5px] flex flex-col gap-[10px] items-start justify-end self-stretch flex-shrink-0 h-40 md:h-[209px] relative shadow-[0px_0px_10px_0px_rgba(0,0,0,0.1)] overflow-hidden cursor-pointer hover:opacity-90 transition-opacity duration-200"
                       style={{
                         background: `url(${foto.url}) center`,
                         backgroundSize: 'cover',
                         backgroundRepeat: 'no-repeat',
                       }}
+                      onClick={() => abrirModalVisualizar(foto)}
                     >
                       {/* Info do tempo */}
                       <div className="bg-gradient-to-br from-black to-transparent p-[10px] flex flex-col gap-0 items-start justify-end flex-shrink-0 w-[246px] h-[43px] relative backdrop-blur-[3.85px]">
@@ -209,6 +223,17 @@ export const VerFotosEnviadas: React.FC<VerFotosEnviadasProps> = ({
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
               />
-    </div>
-  );
-};
+
+              {/* Modal de Visualização */}
+              <ModalVisualizarFoto
+                isOpen={isModalVisualizarOpen}
+                onClose={fecharModalVisualizar}
+                foto={fotoParaVisualizar}
+                onToggleCurtida={handleFavoritar}
+                showActions={true}
+                isMinhaFoto={fotoParaVisualizar?.autorId === user?.uid}
+                isFavoritada={fotoParaVisualizar?.usuariosQueCurtiram.includes(user?.uid || '') || false}
+              />
+            </div>
+          );
+        };
